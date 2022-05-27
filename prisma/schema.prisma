@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model chefs {
+  id_chef             Int           @id @default(autoincrement())
+  Salario             Decimal       @db.Decimal(10, 2)
+  fk_funcionario_chef Int?
+  funcionarios        funcionarios? @relation(fields: [fk_funcionario_chef], references: [id_funcionario], onDelete: NoAction, onUpdate: NoAction, map: "fk_funcionario_chef")
+
+  @@index([fk_funcionario_chef], map: "fk_funcionario_chef")
+}
+
+model clientes {
+  id_cliente             Int          @id @default(autoincrement())
+  Nome_cliente           String       @db.VarChar(255)
+  Telefone_cliente       String       @db.Char(9)
+  fk_restaurante_cliente Int?
+  restaurante            restaurante? @relation(fields: [fk_restaurante_cliente], references: [id_restaurante], onDelete: NoAction, onUpdate: NoAction, map: "fk_restaurante_cliente")
+  reservas               reservas[]
+
+  @@index([fk_restaurante_cliente], map: "fk_restaurante_cliente")
+}
+
+model funcao {
+  id_funcao             Int            @id @default(autoincrement())
+  Nome                  String         @db.VarChar(255)
+  fk_funcionario_funcao Int?
+  restaurante           restaurante?   @relation(fields: [fk_funcionario_funcao], references: [id_restaurante], onDelete: NoAction, onUpdate: NoAction, map: "fk_funcionario_funcao")
+  funcionarios          funcionarios[]
+
+  @@index([fk_funcionario_funcao], map: "fk_funcionario_funcao")
+}
+
+model funcionarios {
+  id_funcionario              Int          @id @default(autoincrement())
+  Nome                        String       @db.VarChar(255)
+  Data_admissao               DateTime     @default(now()) @db.Timestamp(0)
+  funcao                      Int
+  CPF                         String       @db.Char(11)
+  Salario                     Decimal      @db.Decimal(10, 2)
+  fk_restaurante_funcionarios Int?
+  restaurante                 restaurante? @relation(fields: [fk_restaurante_funcionarios], references: [id_restaurante], onDelete: NoAction, onUpdate: NoAction, map: "fk_restaurante_funcionarios")
+  funcao_funcaoTofuncionarios funcao       @relation(fields: [funcao], references: [id_funcao], onDelete: NoAction, onUpdate: NoAction, map: "fk_funcao_funcionarios")
+  chefs                       chefs[]
+  gerente                     gerente[]
+  users                       users[]
+
+  @@index([fk_restaurante_funcionarios], map: "fk_restaurante_funcionarios")
+  @@index([funcao], map: "fk_funcao_funcionarios_idx")
+}
+
+model gerente {
+  id_gerente             Int           @id @default(autoincrement())
+  Salario                Decimal       @db.Decimal(10, 2)
+  fk_funcionario_gerente Int?
+  funcionarios           funcionarios? @relation(fields: [fk_funcionario_gerente], references: [id_funcionario], onDelete: NoAction, onUpdate: NoAction, map: "fk_funcionario_gerente")
+
+  @@index([fk_funcionario_gerente], map: "fk_funcionario_gerente")
+}
+
+model mesas {
+  id_mesa     Int        @id @default(autoincrement())
+  Numero_mesa String     @db.VarChar(255)
+  reservas    reservas[]
+}
+
+model reservas {
+  id_reserva         Int       @id @default(autoincrement())
+  fk_cliente_reserva Int?
+  fk_mesa_reserva    Int?
+  clientes           clientes? @relation(fields: [fk_cliente_reserva], references: [id_cliente], onDelete: NoAction, onUpdate: NoAction, map: "fk_cliente_reserva")
+  mesas              mesas?    @relation(fields: [fk_mesa_reserva], references: [id_mesa], onDelete: NoAction, onUpdate: NoAction, map: "fk_mesa_reserva")
+
+  @@index([fk_cliente_reserva], map: "fk_cliente_reserva")
+  @@index([fk_mesa_reserva], map: "fk_mesa_reserva")
+}
+
+model restaurante {
+  id_restaurante Int            @id
+  CNPJ           String         @db.Char(14)
+  Rua            String         @db.VarChar(255)
+  CEP            String         @db.Char(8)
+  clientes       clientes[]
+  funcao         funcao[]
+  funcionarios   funcionarios[]
+}
+
+model users {
+  id_user               Int          @id @default(autoincrement())
+  email                 String       @db.VarChar(45)
+  password              String       @db.VarChar(255)
+  fk_users_funcionarios Int
+  funcionarios          funcionarios @relation(fields: [fk_users_funcionarios], references: [id_funcionario], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_funcionarios")
+
+  @@index([fk_users_funcionarios], map: "fk_users_funcionarios")
+}
